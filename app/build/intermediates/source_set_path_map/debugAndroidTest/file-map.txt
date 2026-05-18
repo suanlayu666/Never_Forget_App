@@ -1,0 +1,4 @@
+com.neverforget.test.app-androidTest-0 D:\VScode\Never_Forget_App\app\build\generated\res\resValues\androidTest\debug
+com.neverforget.test.app-mergeDebugAndroidTestResources-1 D:\VScode\Never_Forget_App\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
+com.neverforget.test.app-mergeDebugAndroidTestResources-2 D:\VScode\Never_Forget_App\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
+com.neverforget.test.app-merged_res-3 D:\VScode\Never_Forget_App\app\build\intermediates\merged_res\debugAndroidTest

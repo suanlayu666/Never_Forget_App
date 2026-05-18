@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#2563EB</color>
+    <string name="accessibility_service_description">NeverForget 使用无障碍服务帮助您从微信和企业微信中自动抓取聊天消息，以便 AI 进行智能整理。</string>
+    <string name="app_name">NeverForget</string>
+    <style name="Theme.NeverForget" parent="android:Theme.Material.Light.NoActionBar"/>
+</resources>
