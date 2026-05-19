@@ -1,6 +1,8 @@
 package com.neverforget.accessibility
 
 import android.accessibilityservice.AccessibilityService
+import android.content.Context
+import android.provider.Settings
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import com.neverforget.data.local.entity.MessageEntity
@@ -26,18 +28,28 @@ class MessageAccessibilityService : AccessibilityService() {
         @Volatile var shouldScan = false
         @Volatile var lastScanCount = -1
         @Volatile var lastScanError: String? = null
-        @Volatile var isRunning = false
+
+        fun isServiceEnabled(context: Context): Boolean {
+            val enabled = Settings.Secure.getString(
+                context.contentResolver,
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+            )
+            return enabled?.contains(context.packageName) == true
+        }
     }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-        isRunning = true
         // 启动轮询：每 300ms 检查是否需要扫描
         scope.launch {
             while (isActive) {
-                if (shouldScan) {
-                    shouldScan = false
-                    scope.launch { performScan() }
+                try {
+                    if (shouldScan) {
+                        shouldScan = false
+                        scope.launch { performScan() }
+                    }
+                } catch (e: Throwable) {
+                    android.util.Log.e("NeverForget", "Polling loop error", e)
                 }
                 delay(300)
             }
@@ -49,7 +61,6 @@ class MessageAccessibilityService : AccessibilityService() {
     override fun onInterrupt() {}
 
     override fun onDestroy() {
-        isRunning = false
         scope.cancel()
         super.onDestroy()
     }
@@ -203,9 +214,10 @@ class MessageAccessibilityService : AccessibilityService() {
             if (inserted == 0) {
                 lastScanError = "扫描到 ${texts.size} 段文字但无法识别为消息"
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             lastScanError = "扫描异常: ${e.message}"
             lastScanCount = 0
+            android.util.Log.e("NeverForget", "Scan error", e)
         }
     }
 

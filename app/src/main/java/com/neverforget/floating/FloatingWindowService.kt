@@ -11,6 +11,7 @@ import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -240,32 +241,39 @@ class FloatingWindowService : Service() {
 
             // 扫描屏幕按钮
             addView(createPanelButton("扫描屏幕", "#2E7D32") {
-                dismissPanel()
-                if (!MessageAccessibilityService.isRunning) {
-                    android.widget.Toast.makeText(this@FloatingWindowService,
+                val ctx = this@FloatingWindowService
+                if (!MessageAccessibilityService.isServiceEnabled(ctx)) {
+                    android.widget.Toast.makeText(ctx,
                         "请先在设置中开启无障碍服务", android.widget.Toast.LENGTH_SHORT).show()
                 } else {
                     MessageAccessibilityService.shouldScan = true
                     MessageAccessibilityService.lastScanCount = -1
                     MessageAccessibilityService.lastScanError = null
-                    android.widget.Toast.makeText(this@FloatingWindowService,
+                    android.widget.Toast.makeText(ctx,
                         "正在扫描屏幕...", android.widget.Toast.LENGTH_SHORT).show()
-                    // 轮询等待扫描结果
                     scope.launch {
-                        for (i in 0 until 30) {
-                            kotlinx.coroutines.delay(500)
-                            val count = MessageAccessibilityService.lastScanCount
-                            val error = MessageAccessibilityService.lastScanError
-                            if (count >= 0 || error != null) {
-                                val msg = if (count > 0) "已扫描 $count 条消息，可生成摘要"
-                                         else error ?: "扫描完成，未发现消息"
-                                android.widget.Toast.makeText(this@FloatingWindowService,
-                                    msg, android.widget.Toast.LENGTH_SHORT).show()
-                                return@launch
+                        try {
+                            for (i in 0 until 30) {
+                                kotlinx.coroutines.delay(500)
+                                val count = MessageAccessibilityService.lastScanCount
+                                val error = MessageAccessibilityService.lastScanError
+                                if (count >= 0 || error != null) {
+                                    val msg = if (count > 0) "已扫描 $count 条消息，可生成摘要"
+                                             else error ?: "扫描完成，未发现消息"
+                                    android.widget.Toast.makeText(ctx,
+                                        msg, android.widget.Toast.LENGTH_SHORT).show()
+                                    // 确保气泡还在，不在就重建
+                                    ensureBubbleVisible()
+                                    return@launch
+                                }
                             }
+                            android.widget.Toast.makeText(ctx,
+                                "扫描超时，请确认已打开微信聊天界面", android.widget.Toast.LENGTH_SHORT).show()
+                            ensureBubbleVisible()
+                        } catch (e: Throwable) {
+                            android.util.Log.e("NeverForget", "Scan poll error", e)
+                            ensureBubbleVisible()
                         }
-                        android.widget.Toast.makeText(this@FloatingWindowService,
-                            "扫描超时，请确认已打开微信聊天界面", android.widget.Toast.LENGTH_SHORT).show()
                     }
                 }
             })
@@ -290,8 +298,7 @@ class FloatingWindowService : Service() {
                         android.widget.Toast.makeText(this@FloatingWindowService,
                             "失败: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
                     }
-                    // 操作完成后关闭面板
-                    dismissPanel()
+                    ensureBubbleVisible()
                 }
             })
         }
@@ -392,6 +399,12 @@ class FloatingWindowService : Service() {
             try { windowManager.removeView(v) } catch (_: Exception) {}
         }
         bubbleView = null
+    }
+
+    private fun ensureBubbleVisible() {
+        if (bubbleView == null) {
+            showBubble()
+        }
     }
 
     private fun createNotification(): Notification {

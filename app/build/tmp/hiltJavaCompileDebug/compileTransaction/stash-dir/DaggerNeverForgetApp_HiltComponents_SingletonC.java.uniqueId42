@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModel;
 import com.neverforget.accessibility.MessageAccessibilityService;
 import com.neverforget.accessibility.MessageAccessibilityService_MembersInjector;
 import com.neverforget.data.local.AppDatabase;
-import com.neverforget.data.local.MockDataInitializer;
 import com.neverforget.data.local.dao.MessageDao;
 import com.neverforget.data.local.dao.SummaryDao;
 import com.neverforget.data.preferences.AppPreferences;
@@ -379,7 +378,6 @@ public final class DaggerNeverForgetApp_HiltComponents_SingletonC {
 
     @Override
     public void injectMainActivity(MainActivity mainActivity) {
-      injectMainActivity2(mainActivity);
     }
 
     @Override
@@ -405,11 +403,6 @@ public final class DaggerNeverForgetApp_HiltComponents_SingletonC {
     @Override
     public ViewComponentBuilder viewComponentBuilder() {
       return new ViewCBuilder(singletonCImpl, activityRetainedCImpl, activityCImpl);
-    }
-
-    private MainActivity injectMainActivity2(MainActivity instance) {
-      MainActivity_MembersInjector.injectMockDataInitializer(instance, singletonCImpl.mockDataInitializerProvider.get());
-      return instance;
     }
   }
 
@@ -592,11 +585,9 @@ public final class DaggerNeverForgetApp_HiltComponents_SingletonC {
 
     private Provider<MessageRepository> messageRepositoryProvider;
 
-    private Provider<SummaryRepository> summaryRepositoryProvider;
-
     private Provider<AppPreferences> provideAppPreferencesProvider;
 
-    private Provider<MockDataInitializer> mockDataInitializerProvider;
+    private Provider<SummaryRepository> summaryRepositoryProvider;
 
     private Provider<OkHttpClient> provideOkHttpClientProvider;
 
@@ -620,14 +611,13 @@ public final class DaggerNeverForgetApp_HiltComponents_SingletonC {
 
     @SuppressWarnings("unchecked")
     private void initialize(final ApplicationContextModule applicationContextModuleParam) {
-      this.provideAppDatabaseProvider = DoubleCheck.provider(new SwitchingProvider<AppDatabase>(singletonCImpl, 2));
-      this.messageRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<MessageRepository>(singletonCImpl, 1));
+      this.provideAppDatabaseProvider = DoubleCheck.provider(new SwitchingProvider<AppDatabase>(singletonCImpl, 1));
+      this.messageRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<MessageRepository>(singletonCImpl, 0));
+      this.provideAppPreferencesProvider = DoubleCheck.provider(new SwitchingProvider<AppPreferences>(singletonCImpl, 2));
       this.summaryRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<SummaryRepository>(singletonCImpl, 3));
-      this.provideAppPreferencesProvider = DoubleCheck.provider(new SwitchingProvider<AppPreferences>(singletonCImpl, 4));
-      this.mockDataInitializerProvider = DoubleCheck.provider(new SwitchingProvider<MockDataInitializer>(singletonCImpl, 0));
-      this.provideOkHttpClientProvider = DoubleCheck.provider(new SwitchingProvider<OkHttpClient>(singletonCImpl, 6));
-      this.notificationHelperProvider = DoubleCheck.provider(new SwitchingProvider<NotificationHelper>(singletonCImpl, 7));
-      this.summaryEngineProvider = DoubleCheck.provider(new SwitchingProvider<SummaryEngine>(singletonCImpl, 5));
+      this.provideOkHttpClientProvider = DoubleCheck.provider(new SwitchingProvider<OkHttpClient>(singletonCImpl, 5));
+      this.notificationHelperProvider = DoubleCheck.provider(new SwitchingProvider<NotificationHelper>(singletonCImpl, 6));
+      this.summaryEngineProvider = DoubleCheck.provider(new SwitchingProvider<SummaryEngine>(singletonCImpl, 4));
     }
 
     @Override
@@ -663,28 +653,25 @@ public final class DaggerNeverForgetApp_HiltComponents_SingletonC {
       @Override
       public T get() {
         switch (id) {
-          case 0: // com.neverforget.data.local.MockDataInitializer 
-          return (T) new MockDataInitializer(singletonCImpl.messageRepositoryProvider.get(), singletonCImpl.summaryRepositoryProvider.get(), singletonCImpl.provideAppPreferencesProvider.get());
-
-          case 1: // com.neverforget.repository.MessageRepository 
+          case 0: // com.neverforget.repository.MessageRepository 
           return (T) new MessageRepository(singletonCImpl.messageDao());
 
-          case 2: // com.neverforget.data.local.AppDatabase 
+          case 1: // com.neverforget.data.local.AppDatabase 
           return (T) AppModule_ProvideAppDatabaseFactory.provideAppDatabase(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
+
+          case 2: // com.neverforget.data.preferences.AppPreferences 
+          return (T) AppModule_ProvideAppPreferencesFactory.provideAppPreferences(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
           case 3: // com.neverforget.repository.SummaryRepository 
           return (T) new SummaryRepository(singletonCImpl.summaryDao());
 
-          case 4: // com.neverforget.data.preferences.AppPreferences 
-          return (T) AppModule_ProvideAppPreferencesFactory.provideAppPreferences(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
-
-          case 5: // com.neverforget.domain.SummaryEngine 
+          case 4: // com.neverforget.domain.SummaryEngine 
           return (T) new SummaryEngine(singletonCImpl.messageRepositoryProvider.get(), singletonCImpl.summaryRepositoryProvider.get(), singletonCImpl.provideAppPreferencesProvider.get(), singletonCImpl.provideOkHttpClientProvider.get(), singletonCImpl.notificationHelperProvider.get());
 
-          case 6: // okhttp3.OkHttpClient 
+          case 5: // okhttp3.OkHttpClient 
           return (T) AppModule_ProvideOkHttpClientFactory.provideOkHttpClient();
 
-          case 7: // com.neverforget.util.NotificationHelper 
+          case 6: // com.neverforget.util.NotificationHelper 
           return (T) new NotificationHelper(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
           default: throw new AssertionError(id);

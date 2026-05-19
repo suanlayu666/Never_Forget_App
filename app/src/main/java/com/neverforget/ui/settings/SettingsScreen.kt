@@ -163,7 +163,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         item {
             SectionHeader(title = "无障碍服务（屏幕扫描）")
             Column(modifier = Modifier.padding(top = 8.dp)) {
-                val a11yEnabled = MessageAccessibilityService.isRunning
+                val a11yEnabled = MessageAccessibilityService.isServiceEnabled(context)
                 if (a11yEnabled) {
                     Text(
                         text = "状态：无障碍服务已开启 ✓",
